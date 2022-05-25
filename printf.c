@@ -5,16 +5,16 @@
 
 #include "main.h"
 
-void clearCode(va_list args, buffer_t *output);
-int run(const char *format, va_list args, buffer_t *output);
+void cleanup(va_list args, buffer_t *output);
+int run_printf(const char *format, va_list args, buffer_t *output);
 int _printf(const char *format, ...);
 
 /**
- * clearCode - Peforms cleanup operations for _printf.
+ * cleanup - Peforms cleanup operations for _printf.
  * @args: A va_list of arguments provided to _printf.
  * @output: A buffer_t struct.
  */
-void clearCode(va_list args, buffer_t *output)
+void cleanup(va_list args, buffer_t *output)
 {
 	va_end(args);
 	write(1, output->start, output->len);
@@ -29,10 +29,10 @@ void clearCode(va_list args, buffer_t *output)
  *
  * Return: The number of characters stored to output.
  */
-int run(const char *format, va_list args, buffer_t *output)
+int run_printf(const char *format, va_list args, buffer_t *output)
 {
 	int i, wid, prec, ret = 0;
-	char kip;
+	char tmp;
 	unsigned char flags, len;
 	unsigned int (*f)(va_list, buffer_t *,
 			unsigned char, int, int, unsigned char);
@@ -42,21 +42,21 @@ int run(const char *format, va_list args, buffer_t *output)
 		len = 0;
 		if (*(format + i) == '%')
 		{
-			kip = 0;
-			flags = handle_flags(format + i + 1, &kip);
-			wid = handle_width(args, format + i + kip + 1, &kip);
-			prec = handle_precision(args, format + i + kip + 1,
-					&kip);
-			len = handle_length(format + i + kip + 1, &kip);
+			tmp = 0;
+			flags = handle_flags(format + i + 1, &tmp);
+			wid = handle_width(args, format + i + tmp + 1, &tmp);
+			prec = handle_precision(args, format + i + tmp + 1,
+					&tmp);
+			len = handle_length(format + i + tmp + 1, &tmp);
 
-			f = handle_specifiers(format + i + kip + 1);
+			f = handle_specifiers(format + i + tmp + 1);
 			if (f != NULL)
 			{
-				i += kip + 1;
+				i += tmp + 1;
 				ret += f(args, output, flags, wid, prec, len);
 				continue;
 			}
-			else if (*(format + i + kip + 1) == '\0')
+			else if (*(format + i + tmp + 1) == '\0')
 			{
 				ret = -1;
 				break;
@@ -89,7 +89,7 @@ int _printf(const char *format, ...)
 
 	va_start(args, format);
 
-	ret = run(format, args, output);
+	ret = run_printf(format, args, output);
 
 	return (ret);
 }
