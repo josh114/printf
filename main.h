@@ -1,116 +1,91 @@
 #ifndef MAIN_H
 #define MAIN_H
-
-#include <limits.h>
 #include <stdarg.h>
-#include <stdlib.h>
-#include <unistd.h>
-
-/* Flag Modifier Macros */
-#define PLUS 1
-#define SPACE 2
-#define HASH 4
-#define ZERO 8
-#define NEG 16
-#define PLUS_FLAG (flags & 1)
-#define SPACE_FLAG ((flags >> 1) & 1)
-#define HASH_FLAG ((flags >> 2) & 1)
-#define ZERO_FLAG ((flags >> 3) & 1)
-#define NEG_FLAG ((flags >> 4) & 1)
-
-/* Length Modifier Macros */
-#define SHORT 1
-#define LONG 2
 
 /**
- * struct buffer_s - A new type defining a buffer struct.
- * @buffer: A pointer to a character array.
- * @start: A pointer to the start of buffer.
- * @len: The length of the string stored in buffer.
+ * struct specifier - contains specifiers for printf
+ *
+ * @width: width of field to print
+ * @precision: precision of field to print
+ * @length: modifies type length. h/l flags. 0 default, +1 per l, -1 per h
+ * @widthflag: tells whether width is set
+ * @precisionflag: tells whether precision is set
+ * @left: left justify, '-'. 0 for right, 1 for left
+ * @sign: force sign, '+'. 0 for no, 1 for yes
+ * @space: space pad left side of positive numbers if leading 0s. 0 no 1 yes
+ * @zero: zero pad numbers up to width. 0 for no, 1 for yes.
+ * @zerox: add leading 0, 0x, or 0X to o, x or X specifiers. 0 no 1 yes
+ * @specifier: the data type to print, c, s, d, x, etc.
  */
-typedef struct buffer_s
+typedef struct specifier
 {
-	char *buffer;
-	char *start;
-	unsigned int len;
-} buffer_t;
+	unsigned int width;
+	unsigned int precision;
+	int length;
+	char widthflag;
+	char precisionflag;
+	char left;
+	char sign;
+	char space;
+	char zero;
+	char zerox;
+	char specifier;
+} specifier;
 
-/**
- * struct converter_s - A new type defining a converter struct.
- * @specifier: A character representing a conversion specifier.
- * @func: A pointer to a conversion function corresponding to specifier.
- */
-typedef struct converter_s
-{
-	unsigned char specifier;
-	unsigned int (*func)(va_list, buffer_t *,
-			unsigned char, int, int, unsigned char);
-} converter_t;
+/* from printf.c */
+int _printf(char *format, ...);
 
-/**
- * struct flag_s - A new type defining a flags struct.
- * @flag: A character representing a flag.
- * @value: The integer value of the flag.
- */
-typedef struct flag_s
-{
-	unsigned char flag;
-	unsigned char value;
-} flag_t;
+/* from prep_types.c */
+char *prep_string(char *str, specifier spec);
+char *prep_numeric(char *str, specifier spec);
 
-int _printf(const char *format, ...);
+/* from utility.c */
+int _strlen(char *str);
+int ifputs(char *s);
 
-/* Conversion Specifier Functions */
-unsigned int convert_c(va_list args, buffer_t *output,
-		unsigned char flags, int wid, int prec, unsigned char len);
-unsigned int convert_s(va_list args, buffer_t *output,
-		unsigned char flags, int wid, int prec, unsigned char len);
-unsigned int convert_di(va_list args, buffer_t *output,
-		unsigned char flags, int wid, int prec, unsigned char len);
-unsigned int convert_percent(va_list args, buffer_t *output,
-		unsigned char flags, int wid, int prec, unsigned char len);
-unsigned int convert_b(va_list args, buffer_t *output,
-		unsigned char flags, int wid, int prec, unsigned char len);
-unsigned int convert_u(va_list args, buffer_t *output,
-		unsigned char flags, int wid, int prec, unsigned char len);
-unsigned int convert_o(va_list args, buffer_t *output,
-		unsigned char flags, int wid, int prec, unsigned char len);
-unsigned int convert_x(va_list args, buffer_t *output,
-		unsigned char flags, int wid, int prec, unsigned char len);
-unsigned int convert_X(va_list args, buffer_t *output,
-		unsigned char flags, int wid, int prec, unsigned char len);
-unsigned int convert_S(va_list args, buffer_t *output,
-		unsigned char flags, int wid, int prec, unsigned char len);
-unsigned int convert_p(va_list args, buffer_t *output,
-		unsigned char flags, int wid, int prec, unsigned char len);
-unsigned int convert_r(va_list args, buffer_t *output,
-		unsigned char flags, int wid, int prec, unsigned char len);
-unsigned int convert_R(va_list args, buffer_t *output,
-		unsigned char flags, int wid, int prec, unsigned char len);
+/* from itos.c */
+char *itos(va_list list);
+char *hitos(va_list list);
+char *litos(va_list list);
+char *hhitos(va_list list);
 
-/* Handlers */
-unsigned char handle_flags(const char *flags, char *index);
-unsigned char handle_length(const char *modifier, char *index);
-int handle_width(va_list args, const char *modifier, char *index);
-int handle_precision(va_list args, const char *modifier, char *index);
-unsigned int (*handle_specifiers(const char *specifier))(va_list, buffer_t *,
-		unsigned char, int, int, unsigned char);
+/* from uitob.c */
+char *uitob(va_list list);
+char *luitob(va_list list);
+char *huitob(va_list list);
+char *hhuitob(va_list list);
 
-/* Modifiers */
-unsigned int print_width(buffer_t *output, unsigned int printed,
-		unsigned char flags, int wid);
-unsigned int print_string_width(buffer_t *output,
-		unsigned char flags, int wid, int prec, int size);
-unsigned int print_neg_width(buffer_t *output, unsigned int printed,
-		unsigned char flags, int wid);
+/* from utos.c */
+char *utos(va_list list);
+char *hutos(va_list list);
+char *hhutos(va_list list);
+char *lutos(va_list list);
 
-/* Helper Functions */
-buffer_t *init_buffer(void);
-void free_buffer(buffer_t *output);
-unsigned int _memcpy(buffer_t *output, const char *src, unsigned int n);
-unsigned int convert_sbase(buffer_t *output, long int num, char *base,
-		unsigned char flags, int wid, int prec);
-unsigned int convert_ubase(buffer_t *output, unsigned long int num, char *base,
-		unsigned char flags, int wid, int prec);
+/* from itoo.c */
+char *itoo(va_list list);
+char *litoo(va_list list);
+char *hitoo(va_list list);
+char *hhitoo(va_list list);
+
+/* from itox.c */
+char *itox(va_list list);
+char *litox(va_list list);
+char *hitox(va_list list);
+char *hhitox(va_list list);
+
+/* from itox.c */
+char *itoX(va_list list);
+char *hitoX(va_list list);
+char *hhitoX(va_list list);
+char *litoX(va_list list);
+
+/* from stos.c */
+char *rev(char *str);
+char *rot(char *str);
+char *print_hidden(char *str);
+char *null(void);
+
+/* from ptos.c */
+char *nil(void);
 
 #endif
